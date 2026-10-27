@@ -48,11 +48,12 @@ html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}
 <script src="pdf.min.js"></script>
 <script>
 (function(){
-  const SALT = Uint8Array.from(atob("GwwNGJ+dwHh0q9akd+4njA=="), c => c.charCodeAt(0));
+  let SALT = Uint8Array.from(atob("AOoCMlPTJLVpwtnFtE5AqA=="), c => c.charCodeAt(0));
   const ITER = 310000;
   let KEY = null;
   if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
   async function ableiten(pw){
+    try { const r = await fetch("salt.txt", {cache:"no-store"}); if (r.ok) SALT = Uint8Array.from(atob((await r.text()).trim()), c => c.charCodeAt(0)); } catch (e) {}
     const basis = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
     return crypto.subtle.deriveKey({name:"PBKDF2", salt:SALT, iterations:ITER, hash:"SHA-256"}, basis, {name:"AES-GCM", length:256}, true, ["decrypt"]);
   }
@@ -61,12 +62,12 @@ html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}
     return new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM", iv:b.slice(0,12)}, KEY, b.slice(12)));
   }
   window.ladeEnc = async f => {
-    const r = await fetch(f + ".enc");
+    const r = await fetch(f + ".enc", {cache:"no-store"});
     if (!r.ok) throw new Error("Datei fehlt");
     return entschluesseln(await r.arrayBuffer());
   };
   async function starten(){
-    const r = await fetch("site.enc");
+    const r = await fetch("site.enc", {cache:"no-store"});
     const p = JSON.parse(new TextDecoder().decode(await entschluesseln(await r.arrayBuffer())));
     const st = document.createElement("style"); st.textContent = p.css; document.head.appendChild(st);
     document.getElementById("tor").remove();
